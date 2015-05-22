@@ -8,14 +8,15 @@ const render = (options) => {
         bottomMargin = 50,
         contentsWidth = width - leftMargin - rightMargin,
         contentsHeight = height - topMargin - bottomMargin,
-        ratio = 20,
+        xRatio = 20,
+        yRatio = 4,
         timeScale = d3.time.scale()
           .domain(timeDomain)
-          .range([0, contentsWidth * ratio])
+          .range([0, contentsWidth * xRatio])
           .nice(),
         temperatureScale = d3.scale.linear()
           .domain(temperatureDomain)
-          .range([contentsHeight, 0]),
+          .range([contentsHeight * yRatio, 0]),
         temperatureColor = d3.scale.quantize()
           .domain([10, 30])
           .range([
@@ -29,10 +30,11 @@ const render = (options) => {
           ]),
         timeAxis = d3.svg.axis()
           .scale(timeScale)
-          .ticks(240)
+          .ticks(12 * xRatio)
           .orient('bottom'),
         temperatureAxis = d3.svg.axis()
           .scale(temperatureScale)
+          .ticks(40)
           .orient('left');
 
   const initialize = (svg) => {
@@ -41,9 +43,9 @@ const render = (options) => {
       .append('rect')
       .attr({
         x: 0,
-        y: 0,
-        width: contentsWidth,
-        height: contentsHeight
+        y: -topMargin,
+        width: contentsWidth + rightMargin,
+        height: contentsHeight + topMargin
       });
     svg.append('clipPath')
       .attr('id', 'time-axis-region')
@@ -54,6 +56,15 @@ const render = (options) => {
         width: contentsWidth + rightMargin,
         height: bottomMargin
       });
+    svg.append('clipPath')
+      .attr('id', 'temperature-axis-region')
+      .append('rect')
+      .attr({
+        x: -leftMargin,
+        y: -topMargin,
+        width: leftMargin,
+        height: height
+      });
 
     const contentsWrapper = svg.append('g')
             .classed('contents-wrapper', true)
@@ -63,7 +74,7 @@ const render = (options) => {
             }),
           contents = contentsWrapper.append('g')
             .classed('contents', true)
-            .attr('transform', `translate(${-contentsWidth * (ratio - 1)},0)`),
+            .attr('transform', `translate(${contentsWidth * (1 - xRatio)},${contentsHeight * (3 - yRatio)})`),
           timeAxisWrapper = svg.append('g')
             .classed('time-axis-wrapper', true)
             .attr({
@@ -72,12 +83,18 @@ const render = (options) => {
             }),
           timeAxisG = timeAxisWrapper.append('g')
             .classed('time-axis', true)
-            .attr('transform', `translate(${-contentsWidth * (ratio - 1)},0)`)
-            .call(timeAxis);
-    svg.append('g')
-      .classed('temperature-axis', true)
-      .attr('transform', `translate(${leftMargin},${topMargin})`)
-      .call(temperatureAxis);
+            .attr('transform', `translate(${contentsWidth * (1 - xRatio)},0)`)
+            .call(timeAxis),
+          temperatureAxisWrapper = svg.append('g')
+            .classed('temperature-axis-wrapper', true)
+            .attr({
+              'clip-path': 'url(#temperature-axis-region)',
+              transform: `translate(${leftMargin},${topMargin})`
+            }),
+          temperatureAxiG = temperatureAxisWrapper.append('g')
+            .classed('temperature-axis', true)
+            .attr('transform', `translate(0,${contentsHeight * (3 - yRatio)})`)
+            .call(temperatureAxis);
     svg.selectAll('g.tick line')
       .attr('stroke', 'black');
     svg.selectAll('path.domain')
@@ -88,18 +105,18 @@ const render = (options) => {
 
     const zoom = d3.behavior.zoom()
       .scaleExtent([1, 1])
-      .translate([-contentsWidth * (ratio - 1), 0])
+      .translate([contentsWidth * (1 - xRatio), contentsHeight * (3 - yRatio)])
       .on('zoom', function () {
-        const e = d3.event;
-        let x = e.translate[0];
-        if (x < -contentsWidth * (ratio - 1)) {
-          x = -contentsWidth * (ratio - 1);
-          zoom.translate([x, 0]);
-        }
+        const e = d3.event,
+              x = Math.min(Math.max(e.translate[0], contentsWidth * (1 - xRatio)), 0),
+              y = Math.min(Math.max(e.translate[1], contentsHeight * (1 - yRatio)), 0);
+        zoom.translate([x, y]);
         contents
-          .attr('transform', `translate(${x},0)`);
+          .attr('transform', `translate(${x},${y})`);
         timeAxisG
           .attr('transform', `translate(${x},0)`);
+        temperatureAxiG
+          .attr('transform', `translate(0,${y})`);
       });
     svg.call(zoom);
   };
@@ -116,7 +133,7 @@ const render = (options) => {
         .enter()
         .append('g')
         .classed('points', true)
-        .attr('transform', (d) => `translate(${timeScale(d.timestamp)},${height - topMargin - bottomMargin})`)
+        .attr('transform', (d) => `translate(${timeScale(d.timestamp)},${temperatureScale(20)})`)
         .append('circle')
         .attr({
           fill: (d) => temperatureColor(d.temperature),

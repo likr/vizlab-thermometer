@@ -34,9 +34,18 @@ const render = (options) => {
         temperatureAxis = d3.svg.axis()
           .scale(temperatureScale)
           .ticks(40)
-          .orient('left');
+          .orient('left'),
+        gridColor = '#ccc',
+        frameColor = '#000';
 
   const initialize = (svg) => {
+    svg.style({
+      cursor: 'move',
+      'user-select': 'none',
+      '-moz-user-select': 'none',
+      '-webkit-user-select': 'none',
+      '-ms-user-select': 'none'
+    });
     svg.append('clipPath')
       .attr('id', 'contents-region')
       .append('rect')
@@ -96,10 +105,10 @@ const render = (options) => {
             .call(temperatureAxis);
 
     svg.selectAll('g.tick line')
-      .attr('stroke', 'black');
+      .attr('stroke', frameColor);
     svg.selectAll('path.domain')
       .attr({
-        stroke: 'black',
+        stroke: frameColor,
         fill: 'none'
       });
 
@@ -113,7 +122,7 @@ const render = (options) => {
       const x = timeScale(time);
       contents.append('line')
         .attr({
-          stroke: 'black',
+          stroke: gridColor,
           x1: x,
           y1: yStart,
           x2: x,
@@ -124,7 +133,7 @@ const render = (options) => {
       const y = temperatureScale(temperature);
       contents.append('line')
         .attr({
-          stroke: 'black',
+          stroke: gridColor,
           x1: xStart,
           y1: y,
           x2: xStop,

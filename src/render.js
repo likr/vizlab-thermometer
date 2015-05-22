@@ -18,14 +18,13 @@ const render = (options) => {
           .domain(temperatureDomain)
           .range([contentsHeight * yRatio, 0]),
         temperatureColor = d3.scale.quantize()
-          .domain([10, 30])
+          .domain([5, 35])
           .range([
             d3.hsl(240, 0.8, 0.5),
-            d3.hsl(200, 0.8, 0.5),
-            d3.hsl(160, 0.8, 0.5),
-            d3.hsl(120, 0.8, 0.5),
-            d3.hsl(80, 0.8, 0.5),
-            d3.hsl(40, 0.8, 0.5),
+            d3.hsl(192, 0.8, 0.5),
+            d3.hsl(144, 0.8, 0.5),
+            d3.hsl(96, 0.8, 0.5),
+            d3.hsl(48, 0.8, 0.5),
             d3.hsl(0, 0.8, 0.5)
           ]),
         timeAxis = d3.svg.axis()

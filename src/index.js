@@ -36,7 +36,7 @@ angular.module('vizlab-thermometer', [angularfire])
                     width: element[0].clientWidth,
                     height: element[0].clientHeight,
                     timeDomain: [now - 864000000, +now],
-                    temperatureDomain: [0, 50]
+                    temperatureDomain: [0, 40]
                   }));
               };
         let loaded = false;

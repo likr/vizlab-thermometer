@@ -8,16 +8,17 @@ const render = (options) => {
         bottomMargin = 50,
         contentsWidth = width - leftMargin - rightMargin,
         contentsHeight = height - topMargin - bottomMargin,
+        ratio = 20,
         timeScale = d3.time.scale()
           .domain(timeDomain)
-          .range([0, contentsWidth * 10])
+          .range([0, contentsWidth * ratio])
           .nice(),
         temperatureScale = d3.scale.linear()
           .domain(temperatureDomain)
           .range([contentsHeight, 0]),
         timeAxis = d3.svg.axis()
           .scale(timeScale)
-          .ticks(80)
+          .ticks(240)
           .orient('bottom'),
         temperatureAxis = d3.svg.axis()
           .scale(temperatureScale)
@@ -30,10 +31,10 @@ const render = (options) => {
       if (element.select('g.contents').empty()) {
         element.append('g')
           .classed('contents', true)
-          .attr('transform', `translate(${leftMargin - contentsWidth * 9},${topMargin})`);
+          .attr('transform', `translate(${leftMargin - contentsWidth * (ratio - 1)},${topMargin})`);
         element.append('g')
           .classed('time-axis', true)
-          .attr('transform', `translate(${leftMargin - contentsWidth * 9},${height - bottomMargin})`)
+          .attr('transform', `translate(${leftMargin - contentsWidth * (ratio - 1)},${height - bottomMargin})`)
           .call(timeAxis);
         element.append('g')
           .classed('temperature-axis', true)
@@ -49,12 +50,12 @@ const render = (options) => {
 
         const zoom = d3.behavior.zoom()
           .scaleExtent([1, 1])
-          .translate([leftMargin - contentsWidth * 9, topMargin])
+          .translate([leftMargin - contentsWidth * (ratio - 1), topMargin])
           .on('zoom', function () {
             const e = d3.event;
             let x = e.translate[0];
-            if (x < leftMargin - contentsWidth * 9) {
-              x = leftMargin - contentsWidth * 9;
+            if (x < leftMargin - contentsWidth * (ratio - 1)) {
+              x = leftMargin - contentsWidth * (ratio - 1);
               zoom.translate([x, topMargin]);
             }
             element.select('g.contents')

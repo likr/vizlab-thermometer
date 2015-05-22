@@ -35,47 +35,82 @@ const render = (options) => {
           .scale(temperatureScale)
           .orient('left');
 
+  const initialize = (svg) => {
+    svg.append('clipPath')
+      .attr('id', 'contents-region')
+      .append('rect')
+      .attr({
+        x: 0,
+        y: 0,
+        width: contentsWidth,
+        height: contentsHeight
+      });
+    svg.append('clipPath')
+      .attr('id', 'time-axis-region')
+      .append('rect')
+      .attr({
+        x: 0,
+        y: 0,
+        width: contentsWidth + rightMargin,
+        height: bottomMargin
+      });
+
+    const contentsWrapper = svg.append('g')
+            .classed('contents-wrapper', true)
+            .attr({
+              'clip-path': 'url(#contents-region)',
+              transform: `translate(${leftMargin},${topMargin})`
+            }),
+          contents = contentsWrapper.append('g')
+            .classed('contents', true)
+            .attr('transform', `translate(${-contentsWidth * (ratio - 1)},0)`),
+          timeAxisWrapper = svg.append('g')
+            .classed('time-axis-wrapper', true)
+            .attr({
+              'clip-path': 'url(#time-axis-region)',
+              transform: `translate(${leftMargin},${height - bottomMargin})`
+            }),
+          timeAxisG = timeAxisWrapper.append('g')
+            .classed('time-axis', true)
+            .attr('transform', `translate(${-contentsWidth * (ratio - 1)},0)`)
+            .call(timeAxis);
+    svg.append('g')
+      .classed('temperature-axis', true)
+      .attr('transform', `translate(${leftMargin},${topMargin})`)
+      .call(temperatureAxis);
+    svg.selectAll('g.tick line')
+      .attr('stroke', 'black');
+    svg.selectAll('path.domain')
+      .attr({
+        stroke: 'black',
+        fill: 'none'
+      });
+
+    const zoom = d3.behavior.zoom()
+      .scaleExtent([1, 1])
+      .translate([-contentsWidth * (ratio - 1), 0])
+      .on('zoom', function () {
+        const e = d3.event;
+        let x = e.translate[0];
+        if (x < -contentsWidth * (ratio - 1)) {
+          x = -contentsWidth * (ratio - 1);
+          zoom.translate([x, 0]);
+        }
+        contents
+          .attr('transform', `translate(${x},0)`);
+        timeAxisG
+          .attr('transform', `translate(${x},0)`);
+      });
+    svg.call(zoom);
+  };
+
   return (selection) => {
     selection.each(function (records) {
-      const element = d3.select(this);
-      if (element.select('g.contents').empty()) {
-        element.append('g')
-          .classed('contents', true)
-          .attr('transform', `translate(${leftMargin - contentsWidth * (ratio - 1)},${topMargin})`);
-        element.append('g')
-          .classed('time-axis', true)
-          .attr('transform', `translate(${leftMargin - contentsWidth * (ratio - 1)},${height - bottomMargin})`)
-          .call(timeAxis);
-        element.append('g')
-          .classed('temperature-axis', true)
-          .attr('transform', `translate(${leftMargin},${topMargin})`)
-          .call(temperatureAxis);
-        element.selectAll('g.tick line')
-          .attr('stroke', 'black');
-        element.selectAll('path.domain')
-          .attr({
-            stroke: 'black',
-            fill: 'none'
-          });
-
-        const zoom = d3.behavior.zoom()
-          .scaleExtent([1, 1])
-          .translate([leftMargin - contentsWidth * (ratio - 1), topMargin])
-          .on('zoom', function () {
-            const e = d3.event;
-            let x = e.translate[0];
-            if (x < leftMargin - contentsWidth * (ratio - 1)) {
-              x = leftMargin - contentsWidth * (ratio - 1);
-              zoom.translate([x, topMargin]);
-            }
-            element.select('g.contents')
-              .attr('transform', `translate(${x},${topMargin})`);
-            element.select('g.time-axis')
-              .attr('transform', `translate(${x},${height - bottomMargin})`);
-          });
-        element.call(zoom);
+      const svg = d3.select(this);
+      if (svg.select('g.contents').empty()) {
+        initialize(svg);
       }
-      element.select('g.contents')
+      svg.select('g.contents')
         .selectAll('g.points')
         .data(records, (d) => d.$id)
         .enter()

@@ -95,6 +95,7 @@ const render = (options) => {
             .classed('temperature-axis', true)
             .attr('transform', `translate(0,${contentsHeight * (3 - yRatio)})`)
             .call(temperatureAxis);
+
     svg.selectAll('g.tick line')
       .attr('stroke', 'black');
     svg.selectAll('path.domain')
@@ -102,6 +103,35 @@ const render = (options) => {
         stroke: 'black',
         fill: 'none'
       });
+
+    const xTicks = timeScale.ticks(timeAxis.ticks()[0]),
+          xStart = timeScale(xTicks[0]),
+          xStop = timeScale(xTicks[xTicks.length - 1]),
+          yTicks = temperatureScale.ticks(temperatureAxis.ticks()[0]),
+          yStart = temperatureScale(yTicks[0]),
+          yStop = temperatureScale(yTicks[yTicks.length - 1]);
+    for (const time of xTicks) {
+      const x = timeScale(time);
+      contents.append('line')
+        .attr({
+          stroke: 'black',
+          x1: x,
+          y1: yStart,
+          x2: x,
+          y2: yStop
+        });
+    }
+    for (const temperature of yTicks) {
+      const y = temperatureScale(temperature);
+      contents.append('line')
+        .attr({
+          stroke: 'black',
+          x1: xStart,
+          y1: y,
+          x2: xStop,
+          y2: y
+        });
+    }
 
     const zoom = d3.behavior.zoom()
       .scaleExtent([1, 1])

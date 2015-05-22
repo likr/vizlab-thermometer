@@ -1,6 +1,6 @@
 {
   "firebase": "vizlab-thermometer",
-  "public": ".",
+  "public": "app",
   "ignore": [
     "firebase.json",
     "**/.*",

@@ -16,6 +16,17 @@ const render = (options) => {
         temperatureScale = d3.scale.linear()
           .domain(temperatureDomain)
           .range([contentsHeight, 0]),
+        temperatureColor = d3.scale.quantize()
+          .domain([10, 30])
+          .range([
+            d3.hsl(240, 0.8, 0.5),
+            d3.hsl(200, 0.8, 0.5),
+            d3.hsl(160, 0.8, 0.5),
+            d3.hsl(120, 0.8, 0.5),
+            d3.hsl(80, 0.8, 0.5),
+            d3.hsl(40, 0.8, 0.5),
+            d3.hsl(0, 0.8, 0.5)
+          ]),
         timeAxis = d3.svg.axis()
           .scale(timeScale)
           .ticks(240)
@@ -26,7 +37,6 @@ const render = (options) => {
 
   return (selection) => {
     selection.each(function (records) {
-      console.log(records);
       const element = d3.select(this);
       if (element.select('g.contents').empty()) {
         element.append('g')
@@ -74,6 +84,7 @@ const render = (options) => {
         .attr('transform', (d) => `translate(${timeScale(d.timestamp)},${height - topMargin - bottomMargin})`)
         .append('circle')
         .attr({
+          fill: (d) => temperatureColor(d.temperature),
           r: 5
         });
     });

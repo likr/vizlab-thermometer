@@ -35,6 +35,9 @@ const render = (options) => {
           .scale(temperatureScale)
           .ticks(40)
           .orient('left'),
+        line = d3.svg.line()
+          .x((d) => timeScale(d.timestamp))
+          .y((d) => temperatureScale(d.temperature)),
         gridColor = '#ccc',
         frameColor = '#000';
 
@@ -141,6 +144,15 @@ const render = (options) => {
         });
     }
 
+    contents.append('path')
+      .classed('line', true)
+      .attr({
+        fill: 'none',
+        stroke: '#444'
+      });
+    contents.append('g')
+      .classed('points', true);
+
     const zoom = d3.behavior.zoom()
       .scaleExtent([1, 1])
       .translate([contentsWidth * (1 - xRatio), contentsHeight * (3 - yRatio)])
@@ -165,26 +177,45 @@ const render = (options) => {
       if (svg.select('g.contents').empty()) {
         initialize(svg);
       }
-      svg.select('g.contents')
-        .selectAll('g.points')
-        .data(records, (d) => d.$id)
+
+      const oldData = svg.selectAll('g.point').data(),
+            map = new Map();
+      for (const d of oldData) {
+        map.set(d.$id, d);
+      }
+
+      const dataSelection = svg.select('g.points')
+        .selectAll('g.point')
+        .data(records, (d) => d.$id);
+      dataSelection
         .enter()
         .append('g')
-        .classed('points', true)
+        .classed('point', true)
         .attr('transform', (d) => `translate(${timeScale(d.timestamp)},${temperatureScale(20)})`)
         .append('circle')
         .attr({
           fill: (d) => temperatureColor(d.temperature),
           r: 5
         });
+      dataSelection
+        .exit()
+        .remove();
+
+      const oldLine = d3.svg.line()
+        .x((d) => timeScale(d.timestamp))
+        .y((d) => temperatureScale(map.has(d.$id) ? d.temperature : 20));
+      svg.select('path.line')
+        .attr('d', oldLine(records));
     });
 
-    selection.selectAll('g.points')
+    selection.selectAll('g.point')
       .attr('transform', (d) => `translate(${timeScale(d.timestamp)},${temperatureScale(d.temperature)})`);
     selection.select('g.time-axis')
       .call(timeAxis);
     selection.select('g.temperature-axis')
       .call(temperatureAxis);
+    selection.select('path.line')
+      .attr('d', line);
   };
 };
 

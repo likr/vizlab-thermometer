@@ -8,7 +8,7 @@ const render = (options) => {
         bottomMargin = 50,
         contentsWidth = width - leftMargin - rightMargin,
         contentsHeight = height - topMargin - bottomMargin,
-        xRatio = 20,
+        xRatio = 10,
         yRatio = 4,
         timeScale = d3.time.scale()
           .domain(timeDomain)

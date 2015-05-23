@@ -28,6 +28,7 @@
     "angularfire": "^1.1.1",
     "babel-runtime": "^5.4.7",
     "d3": "^3.5.5",
+    "d3-downloadable": "^0.1.2",
     "firebase": "^2.2.5",
     "toccata": "^0.2.1"
   }

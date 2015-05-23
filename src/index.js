@@ -1,6 +1,7 @@
 import angular from 'angular';
 import angularfire from 'angularfire';
 import d3 from 'd3';
+import downloadable from 'd3-downloadable';
 import Firebase from 'firebase';
 import render from './render';
 
@@ -27,7 +28,8 @@ angular.module('vizlab-thermometer', [angularfire])
                 .style({
                   width: '100%',
                   height: '100%'
-                }),
+                })
+                .call(downloadable().filename('chart')),
               draw = () => {
                 const now = new Date();
                 svg.transition()

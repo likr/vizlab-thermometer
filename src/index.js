@@ -13,7 +13,8 @@ angular.module('vizlab-thermometer', [angularfire])
     return {
       restrict: 'E',
       link: (scope, element) => {
-        const root = d3.select(element[0])
+        const zoom = d3.behavior.zoom(),
+              root = d3.select(element[0])
                 .style({
                   position: 'absolute',
                   left: '10px',
@@ -36,7 +37,8 @@ angular.module('vizlab-thermometer', [angularfire])
                     width: element[0].clientWidth,
                     height: element[0].clientHeight,
                     timeDomain: [now - 864000000, +now],
-                    temperatureDomain: [0, 40]
+                    temperatureDomain: [0, 40],
+                    zoom
                   }));
               };
         let loaded = false;

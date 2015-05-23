@@ -1,7 +1,7 @@
 import d3 from 'd3';
 
 const render = (options) => {
-  const {width, height, timeDomain, temperatureDomain} = options,
+  const {width, height, timeDomain, temperatureDomain, zoom} = options,
         leftMargin = 50,
         rightMargin = 50,
         topMargin = 50,
@@ -28,11 +28,11 @@ const render = (options) => {
             d3.hsl(0, 0.8, 0.5)
           ]),
         timeAxis = d3.svg.axis()
-          .scale(timeScale)
+          .scale(timeScale.copy().range([0, zoom.scale() * contentsWidth * xRatio]))
           .ticks(12 * xRatio)
           .orient('bottom'),
         temperatureAxis = d3.svg.axis()
-          .scale(temperatureScale)
+          .scale(temperatureScale.copy().range([zoom.scale() * contentsHeight * yRatio, 0]))
           .ticks(40)
           .orient('left'),
         line = d3.svg.line()
@@ -102,7 +102,7 @@ const render = (options) => {
               'clip-path': 'url(#temperature-axis-region)',
               transform: `translate(${leftMargin},${topMargin})`
             }),
-          temperatureAxiG = temperatureAxisWrapper.append('g')
+          temperatureAxisG = temperatureAxisWrapper.append('g')
             .classed('temperature-axis', true)
             .attr('transform', `translate(0,${contentsHeight * (3 - yRatio)})`)
             .call(temperatureAxis);
@@ -153,20 +153,36 @@ const render = (options) => {
     contents.append('g')
       .classed('points', true);
 
-    const zoom = d3.behavior.zoom()
-      .scaleExtent([1, 1])
+    const minScale = 1 / Math.min(xRatio, yRatio);
+    zoom
+      .scaleExtent([minScale, 1])
       .translate([contentsWidth * (1 - xRatio), contentsHeight * (3 - yRatio)])
       .on('zoom', function () {
         const e = d3.event,
-              x = Math.min(Math.max(e.translate[0], contentsWidth * (1 - xRatio)), 0),
-              y = Math.min(Math.max(e.translate[1], contentsHeight * (1 - yRatio)), 0);
+              scale = e.scale,
+              xLimitScale = d3.scale.linear()
+                .domain([minScale, 1])
+                .range([1 / 6, 1]),
+              yLimitScale = d3.scale.linear()
+                .domain([minScale, 1])
+                .range([0, 1]),
+              x = Math.min(Math.max(e.translate[0], contentsWidth * (1 - xRatio) * xLimitScale(scale)), 0),
+              y = Math.min(Math.max(e.translate[1], contentsHeight * (1 - yRatio) * yLimitScale(scale)), 0);
         zoom.translate([x, y]);
+        timeAxis
+          .scale()
+          .range([0, scale * contentsWidth * xRatio]);
+        temperatureAxis
+          .scale()
+          .range([scale * contentsHeight * yRatio, 0]);
         contents
-          .attr('transform', `translate(${x},${y})`);
+          .attr('transform', `translate(${x},${y})scale(${scale})`);
         timeAxisG
-          .attr('transform', `translate(${x},0)`);
-        temperatureAxiG
-          .attr('transform', `translate(0,${y})`);
+          .attr('transform', `translate(${x},0)`)
+          .call(timeAxis);
+        temperatureAxisG
+          .attr('transform', `translate(0,${y})`)
+          .call(temperatureAxis);
       });
     svg.call(zoom);
   };

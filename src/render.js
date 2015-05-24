@@ -5,7 +5,7 @@ const render = (options) => {
         leftMargin = 50,
         rightMargin = 50,
         topMargin = 50,
-        bottomMargin = 50,
+        bottomMargin = 70,
         contentsWidth = width - leftMargin - rightMargin,
         contentsHeight = height - topMargin - bottomMargin,
         xRatio = 10,
@@ -114,6 +114,8 @@ const render = (options) => {
         stroke: frameColor,
         fill: 'none'
       });
+    timeAxisG.selectAll('text')
+      .attr('transform', 'rotate(60)');
 
     const xTicks = timeScale.ticks(timeAxis.ticks()[0]),
           xStart = timeScale(xTicks[0]),
@@ -179,7 +181,9 @@ const render = (options) => {
           .attr('transform', `translate(${x},${y})scale(${scale})`);
         timeAxisG
           .attr('transform', `translate(${x},0)`)
-          .call(timeAxis);
+          .call(timeAxis)
+          .selectAll('text')
+          .style('text-anchor', 'start');
         temperatureAxisG
           .attr('transform', `translate(0,${y})`)
           .call(temperatureAxis);
@@ -227,7 +231,9 @@ const render = (options) => {
     selection.selectAll('g.point')
       .attr('transform', (d) => `translate(${timeScale(d.timestamp)},${temperatureScale(d.temperature)})`);
     selection.select('g.time-axis')
-      .call(timeAxis);
+      .call(timeAxis)
+      .selectAll('text')
+      .style('text-anchor', 'start');
     selection.select('g.temperature-axis')
       .call(temperatureAxis);
     selection.select('path.line')
